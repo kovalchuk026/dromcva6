@@ -227,7 +227,10 @@ module csr_regfile
   // we are in debug
   logic debug_mode_q, debug_mode_d;
   logic mtvec_rst_load_q;  // used to determine whether we came out of reset
-
+`ifdef DROMAJO
+  logic [63:0] pmpcfg0_q,   pmpcfg0_d;
+  logic [63:0] pmpaddr0_q,  pmpaddr0_d;
+`endif
   logic [CVA6Cfg.XLEN-1:0] dpc_q, dpc_d;
   logic [CVA6Cfg.XLEN-1:0] dscratch0_q, dscratch0_d;
   logic [CVA6Cfg.XLEN-1:0] dscratch1_q, dscratch1_d;
@@ -376,6 +379,11 @@ module csr_regfile
         if (CVA6Cfg.DebugEn) csr_rdata = dscratch1_q;
         else read_access_exception = 1'b1;
         // trigger module registers
+`ifdef DROMAJO
+        // pmp registers
+        riscv::CSR_PMPCFG0:            csr_rdata = pmpcfg0_q;
+        riscv::CSR_PMPADDR0:           csr_rdata = pmpaddr0_q;
+`endif
         riscv::CSR_TSELECT: read_access_exception = 1'b1;  // not implemented
         riscv::CSR_TDATA1: read_access_exception = 1'b1;  // not implemented
         riscv::CSR_TDATA2: read_access_exception = 1'b1;  // not implemented
@@ -695,6 +703,37 @@ module csr_regfile
                 riscv::CSR_HPM_COUNTER_28,
                 riscv::CSR_HPM_COUNTER_29,
                 riscv::CSR_HPM_COUNTER_30,
+`ifdef DROMAJO
+                riscv::CSR_MHPM_EVENT_3,
+                riscv::CSR_MHPM_EVENT_4,
+                riscv::CSR_MHPM_EVENT_5,
+                riscv::CSR_MHPM_EVENT_6,
+                riscv::CSR_MHPM_EVENT_7,
+                riscv::CSR_MHPM_EVENT_8,
+                riscv::CSR_MHPM_EVENT_9,
+                riscv::CSR_MHPM_EVENT_10,
+                riscv::CSR_MHPM_EVENT_11,
+                riscv::CSR_MHPM_EVENT_12,
+                riscv::CSR_MHPM_EVENT_13,
+                riscv::CSR_MHPM_EVENT_14,
+                riscv::CSR_MHPM_EVENT_15,
+                riscv::CSR_MHPM_EVENT_16,
+                riscv::CSR_MHPM_EVENT_17,
+                riscv::CSR_MHPM_EVENT_18,
+                riscv::CSR_MHPM_EVENT_19,
+                riscv::CSR_MHPM_EVENT_20,
+                riscv::CSR_MHPM_EVENT_21,
+                riscv::CSR_MHPM_EVENT_22,
+                riscv::CSR_MHPM_EVENT_23,
+                riscv::CSR_MHPM_EVENT_24,
+                riscv::CSR_MHPM_EVENT_25,
+                riscv::CSR_MHPM_EVENT_26,
+                riscv::CSR_MHPM_EVENT_27,
+                riscv::CSR_MHPM_EVENT_28,
+                riscv::CSR_MHPM_EVENT_29,
+                riscv::CSR_MHPM_EVENT_30,
+                riscv::CSR_MHPM_EVENT_31,
+`endif
                 riscv::CSR_HPM_COUNTER_31 :
         csr_rdata = perf_data_i;
 
@@ -964,6 +1003,10 @@ module csr_regfile
         riscv::CSR_DSCRATCH1:
         if (CVA6Cfg.DebugEn) dscratch1_d = csr_wdata;
         else update_access_exception = 1'b1;
+`ifdef DROMAJO
+        riscv::CSR_PMPCFG0:            pmpcfg0_d = csr_wdata;
+        riscv::CSR_PMPADDR0:           pmpaddr0_d = csr_wdata;
+`endif
         // trigger module CSRs
         riscv::CSR_TSELECT: update_access_exception = 1'b1;  // not implemented
         riscv::CSR_TDATA1: update_access_exception = 1'b1;  // not implemented
@@ -1453,6 +1496,38 @@ module csr_regfile
                 riscv::CSR_MHPM_COUNTER_28,
                 riscv::CSR_MHPM_COUNTER_29,
                 riscv::CSR_MHPM_COUNTER_30,
+
+`ifdef DROMAJO
+                riscv::CSR_MHPM_EVENT_3,
+                riscv::CSR_MHPM_EVENT_4,
+                riscv::CSR_MHPM_EVENT_5,
+                riscv::CSR_MHPM_EVENT_6,
+                riscv::CSR_MHPM_EVENT_7,
+                riscv::CSR_MHPM_EVENT_8,
+                riscv::CSR_MHPM_EVENT_9,
+                riscv::CSR_MHPM_EVENT_10,
+                riscv::CSR_MHPM_EVENT_11,
+                riscv::CSR_MHPM_EVENT_12,
+                riscv::CSR_MHPM_EVENT_13,
+                riscv::CSR_MHPM_EVENT_14,
+                riscv::CSR_MHPM_EVENT_15,
+                riscv::CSR_MHPM_EVENT_16,
+                riscv::CSR_MHPM_EVENT_17,
+                riscv::CSR_MHPM_EVENT_18,
+                riscv::CSR_MHPM_EVENT_19,
+                riscv::CSR_MHPM_EVENT_20,
+                riscv::CSR_MHPM_EVENT_21,
+                riscv::CSR_MHPM_EVENT_22,
+                riscv::CSR_MHPM_EVENT_23,
+                riscv::CSR_MHPM_EVENT_24,
+                riscv::CSR_MHPM_EVENT_25,
+                riscv::CSR_MHPM_EVENT_26,
+                riscv::CSR_MHPM_EVENT_27,
+                riscv::CSR_MHPM_EVENT_28,
+                riscv::CSR_MHPM_EVENT_29,
+                riscv::CSR_MHPM_EVENT_30,
+                riscv::CSR_MHPM_EVENT_31,
+`endif
                 riscv::CSR_MHPM_COUNTER_31 :  begin
           perf_we_o   = 1'b1;
           perf_data_o = csr_wdata;
@@ -2287,7 +2362,11 @@ module csr_regfile
       // floating-point registers
       fcsr_q       <= '0;
       // debug signals
-      debug_mode_q <= 1'b0;
+`ifdef DROMAJO
+            debug_mode_q           <= 1'b1;
+`else
+            debug_mode_q           <= 1'b0;
+`endif
       if (CVA6Cfg.DebugEn) begin
         dcsr_q           <= '0;
         dcsr_q.prv       <= riscv::PRIV_LVL_M;
@@ -2296,6 +2375,10 @@ module csr_regfile
         dscratch0_q      <= {CVA6Cfg.XLEN{1'b0}};
         dscratch1_q      <= {CVA6Cfg.XLEN{1'b0}};
       end
+`ifdef DROMAJO
+      pmpcfg0_q              <= 64'b0;
+      pmpaddr0_q             <= 64'b0;
+`endif
       // machine mode registers
       mstatus_q        <= 64'b0;
       // set to boot address + direct mode + 4 byte offset which is the initial trap
@@ -2377,6 +2460,10 @@ module csr_regfile
         dscratch0_q  <= dscratch0_d;
         dscratch1_q  <= dscratch1_d;
       end
+`ifdef DROMAJO
+      pmpcfg0_q              <= pmpcfg0_d;
+      pmpaddr0_q             <= pmpaddr0_d;
+`endif
       // machine mode registers
       mstatus_q        <= mstatus_d;
       mtvec_rst_load_q <= 1'b0;

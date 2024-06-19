@@ -25,7 +25,7 @@ VCOM ?= vcom$(questa_version)
 VLIB ?= vlib$(questa_version)
 VMAP ?= vmap$(questa_version)
 # verilator version
-verilator             ?= verilator --unroll-count 256 #--debug --gdbbt
+verilator             ?= verilator
 # traget option
 target-options ?=
 # additional defines
@@ -139,9 +139,8 @@ CFLAGS += -I$(QUESTASIM_HOME)/include         \
           -I$(VL_INC_DIR)/vltstd              \
           -I$(RISCV)/include                  \
           -I$(SPIKE_INSTALL_DIR)/include      \
-          -std=c++17 -I../corev_apu/tb/dpi -O3\
-	  -std=c++11 -I../corev_apu/tb/dpi    \
-	  $(if $(DROMAJO),-I../dromajo/src,)
+          -std=c++17 -I../corev_apu/tb/dpi -O3
+
 ifdef XCELIUM_HOME
 CFLAGS += -I$(XCELIUM_HOME)/tools/include
 else
@@ -589,7 +588,8 @@ verilate_command := $(verilator) --no-timing verilator_config.vlt               
                     $(if $(TRACE_COMPACT), --trace-fst $(VL_INC_DIR)/verilated_fst_c.cpp)                        \
                     $(if $(TRACE_FAST), --trace $(VL_INC_DIR)/verilated_vcd_c.cpp)                               \
 		    -LDFLAGS "-L$(RISCV)/lib -Wl,-rpath,$(RISCV)/lib -lfesvr$(if $(PROFILE), -g -pg,) $(if $(DROMAJO), -L../dromajo/src -ldromajo_cosim,) -lpthread" \
-                    -CFLAGS "$(CFLAGS)$(if $(PROFILE), -g -pg,) $(if $(DROMAJO), -DDROMAJO=1,)" -Wall --cc  --vpi\
+                    -CFLAGS "$(CFLAGS)$(if $(PROFILE), -g -pg,) $(if $(DROMAJO), -DDROMAJO=1,)" -Wall --cc  --vpi -std=c++11 -I../corev_apu/tb/dpi                                                                                         \
+		    $(if $(DROMAJO), -I../dromajo/src,)                                                          \
                     $(if $(SPIKE_TANDEM), +define+SPIKE_TANDEM, )                                                \
                     --cc --vpi                                                                                   \
                     $(list_incdir) --top-module ariane_testharness                                               \

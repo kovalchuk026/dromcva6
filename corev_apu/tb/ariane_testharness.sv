@@ -29,7 +29,11 @@ module ariane_testharness #(
   parameter int unsigned AXI_USER_EN       = CVA6Cfg.AXI_USER_EN,
   parameter int unsigned AXI_ADDRESS_WIDTH = 64,
   parameter int unsigned AXI_DATA_WIDTH    = 64,
+`ifdef DROMAJO
+  parameter bit          InclSimDTM        = 1'b0,
+`else
   parameter bit          InclSimDTM        = 1'b1,
+`endif
   parameter int unsigned NUM_WORDS         = 2**25,         // memory size
   parameter bit          StallRandomOutput = 1'b0,
   parameter bit          StallRandomInput  = 1'b0
@@ -358,14 +362,21 @@ module ariane_testharness #(
     .user_i ( '0                      ),
     .data_i ( rom_rdata               )
   );
-
+`ifdef DROMAJO
+  dromajo_bootrom i_bootrom (
+    .clk_i      ( clk_i     ),
+    .req_i      ( rom_req   ),
+    .addr_i     ( rom_addr  ),
+    .rdata_o    ( rom_rdata )
+  );
+`else
   bootrom i_bootrom (
     .clk_i      ( clk_i     ),
     .req_i      ( rom_req   ),
     .addr_i     ( rom_addr  ),
     .rdata_o    ( rom_rdata )
   );
-
+`endif
   // ------------------------------
   // GPIO
   // ------------------------------
@@ -469,7 +480,11 @@ module ariane_testharness #(
     .USER_WIDTH ( AXI_USER_WIDTH ),
     .USER_EN    ( AXI_USER_EN    ),
 `ifdef VERILATOR
+`ifdef DROMAJO
+    .SIM_INIT   (4),
+`else
     .SIM_INIT   ( "none"         ),
+`endif
 `else
     .SIM_INIT   ( "zeros"        ),
 `endif
