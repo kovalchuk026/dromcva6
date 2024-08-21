@@ -2525,7 +2525,11 @@ module csr_regfile
       // floating-point registers
       fcsr_q       <= '0;
       // debug signals
+`ifdef DROMAJO
+      debug_mode_q <= 1'b1;
+`else
       debug_mode_q <= 1'b0;
+`endif
       if (CVA6Cfg.DebugEn) begin
         dcsr_q           <= '0;
         dcsr_q.prv       <= riscv::PRIV_LVL_M;

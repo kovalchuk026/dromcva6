@@ -57,6 +57,30 @@ module SyncSpRamBeNx64
   ////////////////////////////
   // XILINX implementation
   ////////////////////////////
+  initial begin
+    if (SIM_INIT == 4) begin
+      integer hex_file, num_bytes;
+      longint address, value;
+      string f_name;
+      // init to 0
+      for (int k=0; k<DATA_DEPTH; k++) begin
+        Mem_DP[k] = 0;
+      end
+
+      // sync with dromajo
+      if ($value$plusargs("checkpoint=%s", f_name)) begin
+        hex_file = $fopen({f_name,".mainram.hex"}, "r");
+        while (!$feof(hex_file)) begin
+          num_bytes = $fscanf(hex_file, "%d %h\n", address, value);
+          $display("%d %h", address, value);
+          Mem_DP[address] = value;
+        end
+        $display("Done syncing RAM with dromajo...\n");
+      end else begin
+        $display("Failed syncing RAM: provide path to a checkpoint.\n");
+      end
+    end
+  end
 
   `ifdef FPGA_TARGET_XILINX
     logic [DATA_BYTES*8-1:0] Mem_DP[DATA_DEPTH-1:0];
@@ -65,13 +89,15 @@ module SyncSpRamBeNx64
       //pragma translate_off
       automatic logic [63:0] val;
       if(Rst_RBI == 1'b0 && SIM_INIT>0) begin
-        for(int k=0; k<DATA_DEPTH;k++) begin
-          if(SIM_INIT==1) val = '0;
-      `ifndef VERILATOR
-          else if(SIM_INIT==2) void'(randomize(val));
-      `endif
-          else val = 64'hdeadbeefdeadbeef;
-          Mem_DP[k] = val;
+        if (SIM_INIT<4) begin
+          for(int k=0; k<DATA_DEPTH;k++) begin
+            if(SIM_INIT==1) val = '0;
+        `ifndef VERILATOR
+            else if(SIM_INIT==2) void'(randomize(val));
+        `endif
+            else val = 64'hdeadbeefdeadbeef;
+            Mem_DP[k] = val;
+          end
         end
       end else
       //pragma translate_on
@@ -102,13 +128,15 @@ module SyncSpRamBeNx64
       //pragma translate_off
       automatic logic [63:0] val;
       if(Rst_RBI == 1'b0 && SIM_INIT>0) begin
-        for(int k=0; k<DATA_DEPTH;k++) begin
-          if(SIM_INIT==1) val = '0;
-      `ifndef VERILATOR
-          else if(SIM_INIT==2) void'(randomize(val));
-      `endif
-          else val = 64'hdeadbeefdeadbeef;
-          Mem_DP[k] = val;
+        if (SIM_INIT<4) begin
+          for(int k=0; k<DATA_DEPTH;k++) begin
+            if(SIM_INIT==1) val = '0;
+        `ifndef VERILATOR
+            else if(SIM_INIT==2) void'(randomize(val));
+        `endif
+            else val = 64'hdeadbeefdeadbeef;
+            Mem_DP[k] = val;
+          end
         end
       end else
       //pragma translate_on

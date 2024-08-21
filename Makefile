@@ -137,11 +137,12 @@ endif
 
 dpi_hdr := $(wildcard corev_apu/tb/dpi/*.h)
 dpi_hdr := $(addprefix $(root-dir), $(dpi_hdr))
-CFLAGS += -I$(QUESTASIM_HOME)/include         \
-          -I$(VCS_HOME)/include               \
-          -I$(VL_INC_DIR)/vltstd              \
-          -I$(RISCV)/include                  \
-          -I$(SPIKE_INSTALL_DIR)/include      \
+CFLAGS += -I$(QUESTASIM_HOME)/include          \
+          -I$(VCS_HOME)/include                \
+          -I$(VL_INC_DIR)/vltstd               \
+          -I$(RISCV)/include                   \
+          -I$(SPIKE_INSTALL_DIR)/include       \
+          $(if $(DROMAJO), -I$(DROMAJO_DIR)/include,)\
           -std=c++17 -I$(CVA6_REPO_DIR)/corev_apu/tb/dpi -O3
 
 ifdef XCELIUM_HOME
@@ -593,6 +594,7 @@ xrun-ci: xrun-asm-tests xrun-amo-tests xrun-mul-tests xrun-fp-tests xrun-benchma
 
 # verilator-specific
 verilate_command := $(verilator) --no-timing verilator_config.vlt                                                \
+                    $(if $(DROMAJO), -DDROMAJO=1,)                                                               \
                     -f core/Flist.cva6                                                                           \
                     core/cva6_rvfi.sv                                                                            \
                     $(filter-out %.vhd, $(ariane_pkg))                                                           \
@@ -618,15 +620,15 @@ verilate_command := $(verilator) --no-timing verilator_config.vlt               
                     $(if $(DEBUG), --trace-structs,)                                                             \
                     $(if $(TRACE_COMPACT), --trace-fst $(VL_INC_DIR)/verilated_fst_c.cpp)                        \
                     $(if $(TRACE_FAST), --trace $(VL_INC_DIR)/verilated_vcd_c.cpp)                               \
-                    -LDFLAGS "-L$(RISCV)/lib -L$(SPIKE_INSTALL_DIR)/lib -Wl,-rpath,$(RISCV)/lib -Wl,-rpath,$(SPIKE_INSTALL_DIR)/lib -lfesvr -lriscv -ldisasm -lyaml-cpp $(if $(PROFILE), -g -pg,) -lpthread $(if $(TRACE_COMPACT), -lz,)" \
-                    -CFLAGS "$(CFLAGS)$(if $(PROFILE), -g -pg,) -DVL_DEBUG -I$(SPIKE_INSTALL_DIR)"               \
+                    -LDFLAGS "-L$(RISCV)/lib -L$(SPIKE_INSTALL_DIR)/lib -Wl,-rpath,$(RISCV)/lib -Wl,-rpath,$(SPIKE_INSTALL_DIR)/lib -lfesvr -lriscv -ldisasm -lyaml-cpp $(if $(PROFILE), -g -pg,) $(if $(DROMAJO), -L$(DROMAJO_DIR)/build -ldromajo_cosim,) -lpthread $(if $(TRACE_COMPACT), -lz,)" \
+                    -CFLAGS "$(CFLAGS)$(if $(PROFILE), -g -pg,) -DVL_DEBUG -I$(SPIKE_INSTALL_DIR) $(if $(DROMAJO), -DDROMAJO=1,)"\
                     $(if $(SPIKE_TANDEM), +define+SPIKE_TANDEM, )                                                \
                     --cc --vpi                                                                                   \
                     $(list_incdir) --top-module ariane_testharness                                               \
                     --threads-dpi none                                                                           \
                     --Mdir $(ver-library) -O3                                                                    \
                     --exe corev_apu/tb/ariane_tb.cpp corev_apu/tb/dpi/SimDTM.cc corev_apu/tb/dpi/SimJTAG.cc      \
-                    corev_apu/tb/dpi/remote_bitbang.cc corev_apu/tb/dpi/msim_helper.cc
+                    corev_apu/tb/dpi/remote_bitbang.cc corev_apu/tb/dpi/msim_helper.cc $(if $(DROMAJO), corev_apu/tb/dpi/cosim.cc)
 
 # User Verilator, at some point in the future this will be auto-generated
 verilate:

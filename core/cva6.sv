@@ -12,6 +12,14 @@
 // Date: 19.03.2017
 // Description: CVA6 Top-level module
 
+`ifdef DROMAJO
+import "DPI-C" function void dromajo_step(int     hart_id,
+                                          longint pc,
+                                          int     insn,
+                                          longint wdata);
+import "DPI-C" function void init_dromajo(string file);
+`endif
+
 `include "rvfi_types.svh"
 `include "cvxif_types.svh"
 
@@ -1622,6 +1630,15 @@ module cva6
 
   int f;
   logic [63:0] cycles;
+  string file;
+`ifdef DROMAJO
+  initial begin
+    $value$plusargs("checkpoint=%s", file);
+    $display("!!!!%S", {file.substr(0, file.len() - 3),"boot.cfg" } );
+    init_dromajo({file.substr(0, file.len() - 3),"boot.cfg" });
+    $display("Done initing dromajo...");
+  end
+`endif
 
   initial begin
     string fn;
@@ -1645,6 +1662,13 @@ module cva6
       end
       for (int i = 0; i < CVA6Cfg.NrCommitPorts; i++) begin
         if (commit_ack[i] && !commit_instr_id_commit[i].ex.valid) begin
+`ifdef DROMAJO
+          // COSIM with dromajo
+          dromajo_step(hart_id_i,
+                       commit_instr_id_commit[i].pc,
+                       commit_instr_id_commit[i].ex.tval[31:0],
+                       commit_instr_id_commit[i].result);
+`endif
           $fwrite(f, "%d 0x%0h %s (0x%h) DASM(%h)\n", cycles, commit_instr_id_commit[i].pc, mode,
                   commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].ex.tval[31:0]);
         end else if (commit_ack[i] && commit_instr_id_commit[i].ex.valid) begin

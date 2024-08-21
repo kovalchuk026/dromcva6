@@ -125,7 +125,7 @@ module tc_sram #(
 
   // In case simulation initialization is disabled (SimInit == 'none'), don't assign to the sram
   // content at all. This improves simulation performance in tools like verilator
-  if (SimInit == "none") begin
+  if (SimInit == "none" || SimInit == 4) begin
     // write memory array without initialization
     always_ff @(posedge clk_i or negedge rst_ni) begin
       if (!rst_ni) begin
