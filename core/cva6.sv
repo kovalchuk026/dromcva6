@@ -1634,7 +1634,6 @@ module cva6
 `ifdef DROMAJO
   initial begin
     $value$plusargs("checkpoint=%s", file);
-    $display("!!!!%S", {file.substr(0, file.len() - 3),"boot.cfg" } );
     init_dromajo({file.substr(0, file.len() - 3),"boot.cfg" });
     $display("Done initing dromajo...");
   end
@@ -1664,10 +1663,11 @@ module cva6
         if (commit_ack[i] && !commit_instr_id_commit[i].ex.valid) begin
 `ifdef DROMAJO
           // COSIM with dromajo
+          //$display("dromajo_step: result: %h    wdata: %h", commit_instr_id_commit[i].result, wdata_commit_id[i]);
           dromajo_step(hart_id_i,
                        commit_instr_id_commit[i].pc,
                        commit_instr_id_commit[i].ex.tval[31:0],
-                       commit_instr_id_commit[i].result);
+                       wdata_commit_id[i]);
 `endif
           $fwrite(f, "%d 0x%0h %s (0x%h) DASM(%h)\n", cycles, commit_instr_id_commit[i].pc, mode,
                   commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].ex.tval[31:0]);

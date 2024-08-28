@@ -367,9 +367,10 @@ module csr_regfile
         riscv::CSR_DPC:
         if (CVA6Cfg.DebugEn) csr_rdata = dpc_q;
         else read_access_exception = 1'b1;
-        riscv::CSR_DSCRATCH0:
-        if (CVA6Cfg.DebugEn) csr_rdata = dscratch0_q;
-        else read_access_exception = 1'b1;
+        riscv::CSR_DSCRATCH0: begin
+          if (CVA6Cfg.DebugEn) csr_rdata = dscratch0_q;
+          else read_access_exception = 1'b1;
+        end
         riscv::CSR_DSCRATCH1:
         if (CVA6Cfg.DebugEn) csr_rdata = dscratch1_q;
         else read_access_exception = 1'b1;
@@ -869,6 +870,7 @@ module csr_regfile
   // ---------------------------
   logic [CVA6Cfg.XLEN-1:0] mask;
   always_comb begin : csr_update
+  
     automatic satp_t satp;
     automatic satp_t vsatp;
     automatic hgatp_t hgatp;
@@ -1058,9 +1060,10 @@ module csr_regfile
         riscv::CSR_DPC:
         if (CVA6Cfg.DebugEn) dpc_d = csr_wdata;
         else update_access_exception = 1'b1;
-        riscv::CSR_DSCRATCH0:
-        if (CVA6Cfg.DebugEn) dscratch0_d = csr_wdata;
-        else update_access_exception = 1'b1;
+        riscv::CSR_DSCRATCH0: begin
+          if (CVA6Cfg.DebugEn) dscratch0_d = csr_wdata;
+          else update_access_exception = 1'b1;
+        end
         riscv::CSR_DSCRATCH1:
         if (CVA6Cfg.DebugEn) dscratch1_d = csr_wdata;
         else update_access_exception = 1'b1;
@@ -2436,7 +2439,6 @@ module csr_regfile
     // returned in the rd destination register contains the logical-OR of the software-writable
     // bit and the interrupt signal from the interrupt controller.
     csr_rdata_o = csr_rdata;
-
     unique case (conv_csr_addr.address)
       riscv::CSR_MIP:
       csr_rdata_o = csr_rdata | ({{CVA6Cfg.XLEN - 1{1'b0}}, irq_i[1]} << riscv::IRQ_S_EXT);

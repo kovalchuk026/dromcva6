@@ -13,7 +13,7 @@ extern "C" void init_dromajo(char* cfg_f_name) {
 
   dromajo_pointer = dromajo_cosim_init(2, argv);
 }
-
+int counter = 3;
 extern "C" void dromajo_step(int      hart_id,
                              uint64_t pc,
                              uint32_t insn,
@@ -26,10 +26,12 @@ extern "C" void dromajo_step(int      hart_id,
                                      wdata,
                                      0,
                                      true);
-
   if (exit_code != 0) {
-    std::cout << "oops!" << std::endl;
-    abort();
+  //  counter --;
+  //  if(counter <=0){
+      std::cout << "oops!" << std::endl;
+      abort();
+  //  }
   }
 }
 
